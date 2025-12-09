@@ -31,6 +31,11 @@ public record ExceptionHandlingProperties(
 
 ) {
 
+    // Default constructor for Spring Boot
+    public ExceptionHandlingProperties() {
+        this(false, false, "ERROR", List.of(), true, "https://api.company.com/errors");
+    }
+
     // Constructor with defaults
     public ExceptionHandlingProperties(
             boolean includeStackTrace,
