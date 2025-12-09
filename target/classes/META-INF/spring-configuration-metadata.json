@@ -1,0 +1,45 @@
+{
+  "groups": [
+    {
+      "name": "app.exception",
+      "type": "com.company.exceptionhandling.starter.properties.ExceptionHandlingProperties",
+      "sourceType": "com.company.exceptionhandling.starter.properties.ExceptionHandlingProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "app.exception.base-error-uri",
+      "type": "java.lang.String",
+      "sourceType": "com.company.exceptionhandling.starter.properties.ExceptionHandlingProperties"
+    },
+    {
+      "name": "app.exception.expose-error-codes",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.company.exceptionhandling.starter.properties.ExceptionHandlingProperties",
+      "defaultValue": false
+    },
+    {
+      "name": "app.exception.include-cause",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.company.exceptionhandling.starter.properties.ExceptionHandlingProperties",
+      "defaultValue": false
+    },
+    {
+      "name": "app.exception.include-stack-trace",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.company.exceptionhandling.starter.properties.ExceptionHandlingProperties",
+      "defaultValue": false
+    },
+    {
+      "name": "app.exception.log-level",
+      "type": "java.lang.String",
+      "sourceType": "com.company.exceptionhandling.starter.properties.ExceptionHandlingProperties"
+    },
+    {
+      "name": "app.exception.sensitive-fields",
+      "type": "java.util.List<java.lang.String>",
+      "sourceType": "com.company.exceptionhandling.starter.properties.ExceptionHandlingProperties"
+    }
+  ],
+  "hints": []
+}
