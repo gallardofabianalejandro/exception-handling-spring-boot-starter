@@ -25,9 +25,7 @@ public class ExceptionHandlingAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(GlobalExceptionHandler.class)
-    public GlobalExceptionHandler globalExceptionHandler(
-            ExceptionHandlingProperties properties,
-            Tracer tracer) {
-        return new GlobalExceptionHandler(properties, tracer);
+    public GlobalExceptionHandler globalExceptionHandler(ExceptionHandlingProperties properties) {
+        return new GlobalExceptionHandler(properties);
     }
 }

@@ -3,6 +3,7 @@ package com.company.exceptionhandling.starter;
 import com.company.exceptionhandling.starter.config.ExceptionHandlingAutoConfiguration;
 import com.company.exceptionhandling.starter.domain.BusinessException;
 import com.company.exceptionhandling.starter.errors.CommonErrorCodes;
+import io.micrometer.tracing.Tracer;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -27,7 +28,7 @@ class ExceptionHandlingStarterTest {
         // Test that Spring context loads with our auto-configuration
         contextRunner.run(context -> {
             assertThat(context).hasSingleBean(ExceptionHandlingAutoConfiguration.class);
-            assertThat(context).hasBean("starterGlobalExceptionHandler");
+            assertThat(context).hasSingleBean(com.company.exceptionhandling.starter.handler.GlobalExceptionHandler.class);
         });
     }
 
