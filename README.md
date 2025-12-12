@@ -2,6 +2,10 @@
 
 Un starter moderno de Spring Boot para el manejo completo de excepciones con soporte para ProblemDetail (RFC 9457), logging estructurado y características de observabilidad.
 
+## Arquitectura General
+
+![Arquitectura del Starter](diagrama_starter_Exception.png)
+
 ## Características
 
 - **Soporte para ProblemDetail**: Respuestas de error modernas siguiendo RFC 9457
@@ -31,6 +35,8 @@ El starter se configura automáticamente cuando se agrega al classpath. ¡No se 
 
 
 ## Arquitectura y Componentes
+
+![Componentes del Starter](diagrama%202%20starter.png)
 
 ### Clase ExceptionHandlingAutoConfiguration
 
