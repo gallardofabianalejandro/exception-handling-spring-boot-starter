@@ -1,10 +1,10 @@
 # Exception Handling Spring Boot Starter
 
-Un starter moderno de Spring Boot para el manejo completo de excepciones con soporte para ProblemDetail (RFC 7807), logging estructurado y características de observabilidad.
+Un starter moderno de Spring Boot para el manejo completo de excepciones con soporte para ProblemDetail (RFC 9457), logging estructurado y características de observabilidad.
 
 ## Características
 
-- **Soporte para ProblemDetail**: Respuestas de error modernas siguiendo RFC 7807
+- **Soporte para ProblemDetail**: Respuestas de error modernas siguiendo RFC 9457
 - **Logging Estructurado**: Logging listo para empresas con contexto MDC y IDs de trace/span
 - **Excepciones de Dominio**: Jerarquía de excepciones type-safe con patrón builder
 - **Soporte para Validación**: Integración con Spring Validation y excepciones de validación personalizadas
@@ -444,7 +444,7 @@ public class GlobalExceptionHandler {
                 ex.getMessage()
             );
 
-            // URI de tipo RFC-7807
+            // URI de tipo RFC-9457
             URI typeUri = URI.create(properties.buildErrorTypeUri(ex.getErrorCode()));
             problem.setType(typeUri);
 
@@ -478,7 +478,7 @@ public class GlobalExceptionHandler {
 - Maneja `BaseDomainException`, `ValidationException` y excepciones genéricas
 - Logging estructurado con MDC context
 - Integración con tracing (traceId/spanId)
-- Respuestas ProblemDetail RFC-7807
+- Respuestas ProblemDetail RFC-9457
 - Manejo seguro de MDC para evitar fugas de memoria
 - Categorización automática de errores
 
@@ -898,7 +898,7 @@ public class SecurityService {
 
 ## Formato de Respuesta de Error
 
-Todas las respuestas de error retornan respuestas ProblemDetail (RFC 7807):
+Todas las respuestas de error retornan respuestas ProblemDetail (RFC 9457):
 
 ```json
 {

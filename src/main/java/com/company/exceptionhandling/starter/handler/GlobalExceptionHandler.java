@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +30,7 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
  * This handler is automatically registered by ExceptionHandlingAutoConfiguration
  * and can be overridden by applications using @ConditionalOnMissingBean.
  */
+@Order(Ordered.LOWEST_PRECEDENCE)
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -79,7 +82,7 @@ public class GlobalExceptionHandler {
                 ex.getMessage()
             );
 
-            // ✅ CRÍTICO: RFC-7807 Type URI
+            // ✅ CRÍTICO: RFC-9457 Type URI
             URI typeUri = URI.create(properties.buildErrorTypeUri(ex.getErrorCode()));
             problem.setType(typeUri);
 
@@ -136,7 +139,7 @@ public class GlobalExceptionHandler {
                 ex.getMessage()
             );
 
-            // ✅ RFC-7807 Type URI
+            // ✅ RFC-9457 Type URI
             URI typeUri = URI.create(properties.buildErrorTypeUri(ex.getErrorCode()));
             problem.setType(typeUri);
 
@@ -185,7 +188,7 @@ public class GlobalExceptionHandler {
                 "An unexpected error occurred"
             );
 
-            // ✅ RFC-7807 Type URI for generic errors
+            // ✅ RFC-9457 Type URI for generic errors
             URI typeUri = URI.create(properties.buildErrorTypeUri("INTERNAL_SERVER_ERROR"));
             problem.setType(typeUri);
 

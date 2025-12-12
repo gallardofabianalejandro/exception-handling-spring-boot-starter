@@ -26,7 +26,7 @@ public record ExceptionHandlingProperties(
     // Whether to expose internal error codes
     boolean exposeErrorCodes,
 
-    // Base URI for error types (RFC-7807)
+    // Base URI for error types (RFC-9457)
     String baseErrorUri
 
 ) {
