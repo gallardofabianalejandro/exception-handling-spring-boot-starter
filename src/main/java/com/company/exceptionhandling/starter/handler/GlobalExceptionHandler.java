@@ -13,12 +13,18 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 
 import java.net.URI;
 import java.time.OffsetDateTime;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
@@ -227,6 +233,105 @@ public class GlobalExceptionHandler {
             return "VALIDATION";
         } else {
             return "BUSINESS";
+        }
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ProblemDetail> handleMethodArgumentNotValid(
+            MethodArgumentNotValidException ex,
+            WebRequest request) {
+
+        Map<String, String> originalMdc = MDC.getCopyOfContextMap();
+
+        try {
+            BindingResult result = ex.getBindingResult();
+
+            // 1️⃣ Extraer errores SIN valores sensibles para logs
+            Map<String, String> fieldErrors = new HashMap<>();
+            Map<String, String> sanitizedFieldErrors = new HashMap<>(); // 👈 Para logs seguros
+
+            for (FieldError error : result.getFieldErrors()) {
+                String fieldName = error.getField();
+                String errorMessage = error.getDefaultMessage();
+
+                // Para respuesta al cliente (incluye mensaje completo)
+                fieldErrors.put(fieldName, errorMessage);
+
+                // Para logs (SIN valores, solo metadata)
+                if (properties.isSensitiveField(fieldName)) {
+                    sanitizedFieldErrors.put(fieldName, "[REDACTED] - " + errorMessage);
+                } else {
+                    sanitizedFieldErrors.put(fieldName, errorMessage);
+                }
+            }
+
+            List<String> globalErrors = result.getGlobalErrors()
+                    .stream()
+                    .map(ObjectError::getDefaultMessage)
+                    .toList();
+
+            // 2️⃣ Setup MDC
+            MDC.put(ERROR_CODE, "VALIDATION_ERROR");
+            MDC.put(ERROR_HTTP_STATUS, "422");
+            MDC.put(ERROR_CATEGORY, "SPRING_VALIDATION");
+            MDC.put("validation.fieldCount", String.valueOf(fieldErrors.size()));
+            MDC.put("validation.globalCount", String.valueOf(globalErrors.size()));
+            MDC.put("validation.objectName", result.getObjectName());
+
+            String traceId = getTraceId();
+            String spanId = getSpanId();
+
+            // 3️⃣ Logging estructurado SEGURO (sin PII)
+            logger.warn("Spring validation failed",
+                    kv(ERROR_CODE, "VALIDATION_ERROR"),
+                    kv(TRACE_ID, traceId),
+                    kv("spanId", spanId),
+                    kv("objectName", result.getObjectName()),
+                    kv("fieldErrorCount", fieldErrors.size()),
+                    kv("fieldNames", sanitizedFieldErrors.keySet()), // 👈 Solo nombres de campos
+                    kv("sanitizedErrors", sanitizedFieldErrors), // 👈 Sin valores sensibles
+                    kv("globalErrorCount", globalErrors.size()),
+                    kv(REQUEST_URI, request.getDescription(false))
+                    // ❌ NO loguear: ex (stack trace con valores)
+                    // ❌ NO loguear: fieldErrors directamente (contiene valores)
+            );
+
+            // 4️⃣ Construir respuesta RFC-9457
+            ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                    HttpStatus.UNPROCESSABLE_ENTITY,
+                    "Validation failed for object '" + result.getObjectName() + "'"
+            );
+
+            URI typeUri = URI.create(properties.buildErrorTypeUri("VALIDATION_ERROR"));
+            problem.setType(typeUri);
+
+            problem.setTitle("Validation Failed");
+            problem.setProperty(TIMESTAMP, OffsetDateTime.now().toString());
+            problem.setProperty(TRACE_ID, traceId);
+            problem.setProperty("spanId", spanId);
+            problem.setProperty("errorCode", "VALIDATION_ERROR");
+            problem.setProperty("validationType", "SPRING_FRAMEWORK"); // 👈 Identificador de origen
+
+            // 5️⃣ Respuesta al cliente (puede incluir detalles)
+            problem.setProperty("fieldErrors", fieldErrors); // OK para cliente
+            problem.setProperty("globalErrors", globalErrors);
+            problem.setProperty("errorCount", fieldErrors.size() + globalErrors.size());
+
+            return ResponseEntity
+                    .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .body(problem);
+
+        } finally {
+            if (originalMdc != null) {
+                MDC.setContextMap(originalMdc);
+            } else {
+                MDC.remove(ERROR_CODE);
+                MDC.remove(ERROR_HTTP_STATUS);
+                MDC.remove(ERROR_CATEGORY);
+                MDC.remove("validation.fieldCount");
+                MDC.remove("validation.globalCount");
+                MDC.remove("validation.objectName");
+            }
         }
     }
 }

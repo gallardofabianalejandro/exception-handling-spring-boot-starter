@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Logback defaults for Exception Handling Starter
+    This file is included from application's exception-handling-defaults.xml
+
+    Usage in microservice:
+    <configuration>
+        <include resource="logback-defaults.xml"/>
+    </configuration>
+-->
+<included>
+
+    <!-- ===================================== -->
+    <!-- Property: Application name (can be overridden) -->
+    <!-- ===================================== -->
+    <springProperty name="APP_NAME" source="spring.application.name" defaultValue="application"/>
+
+    <!-- ===================================== -->
+    <!-- CONSOLE JSON: Structured logging with sanitization -->
+    <!-- ===================================== -->
+    <appender name="EXCEPTION_HANDLER_JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <!-- Pretty print for development (remove in production) -->
+            <jsonGeneratorDecorator class="net.logstash.logback.decorate.PrettyPrintingJsonGeneratorDecorator"/>
+
+            <!-- Include MDC (traceId, spanId, error.code, etc.) -->
+            <includeMdc>true</includeMdc>
+            <includeContext>false</includeContext>
+
+            <!-- Include structured arguments (kv() calls) -->
+            <provider class="net.logstash.logback.composite.loggingevent.ArgumentsJsonProvider"/>
+
+            <!-- Custom fields -->
+            <customFields>{"application":"${APP_NAME}"}</customFields>
+        </encoder>
+    </appender>
+
+    <!-- ===================================== -->
+    <!-- FILE: Persistent structured logs -->
+    <!-- ===================================== -->
+    <appender name="EXCEPTION_HANDLER_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/${APP_NAME}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/${APP_NAME}-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <!-- No pretty print for file (compact, one line per log) -->
+            <includeMdc>true</includeMdc>
+            <provider class="net.logstash.logback.composite.loggingevent.ArgumentsJsonProvider"/>
+            <customFields>{"application":"${APP_NAME}"}</customFields>
+        </encoder>
+    </appender>
+
+    <!-- ===================================== -->
+    <!-- LOGGER: Exception Handler with structured logging -->
+    <!-- ===================================== -->
+    <logger name="com.company.exceptionhandling.starter.handler.GlobalExceptionHandler" level="WARN" additivity="false">
+        <appender-ref ref="EXCEPTION_HANDLER_JSON"/>
+        <appender-ref ref="EXCEPTION_HANDLER_FILE"/>
+    </logger>
+
+</included>
